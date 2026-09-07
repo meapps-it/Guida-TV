@@ -107,12 +107,7 @@ jobs:
 
                   for alias in aliases_n:
                       for hay in haystacks:
-                          score = 0
-                          if hay == alias:
-                              score = 100
-                          elif alias in hay or hay in alias:
-                              score = 70
-
+                          score = 100 if hay == alias else 70 if (alias in hay or hay in alias) else 0
                           if score > best_score:
                               best_score = score
                               best = cid
@@ -140,12 +135,16 @@ jobs:
 
               out_id = selected[source_id]["id"]
 
+              icon = p.find("icon")
+              image = icon.attrib.get("src") if icon is not None else None
+
               programs[out_id].append({
                   "start": start,
                   "stop": stop,
                   "title": re.sub(r"\s+", " ", p.findtext("title") or "").strip(),
                   "description": re.sub(r"\s+", " ", p.findtext("desc") or "").strip(),
-                  "category": re.sub(r"\s+", " ", p.findtext("category") or "").strip()
+                  "category": re.sub(r"\s+", " ", p.findtext("category") or "").strip(),
+                  "image": image
               })
 
           channels = []
@@ -169,6 +168,7 @@ jobs:
 
           print("Canali trovati:", len(channels))
           print("Programmi trovati:", sum(len(v) for v in cleaned.values()))
+          print("Programmi con immagine EPG:", sum(1 for v in cleaned.values() for p in v if p.get("image")))
           PY
 
       - name: Salva palinsesti aggiornati
