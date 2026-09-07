@@ -1,0 +1,186 @@
+name: Aggiorna palinsesti TV
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "20 4,16 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  update-epg:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Scarica EPG Italia
+        run: |
+          curl -fL --retry 3 \
+            "https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz" \
+            -o /tmp/it.xml.gz
+          gzip -dc /tmp/it.xml.gz > /tmp/it.xml
+
+      - name: Crea JSON per la PWA
+        run: |
+          python3 - <<'PY'
+          import json, re, unicodedata
+          import xml.etree.ElementTree as ET
+          from datetime import datetime, timezone
+
+          WANTED = [
+              ("rai1", "Rai 1", ["rai 1", "rai1"]),
+              ("rai2", "Rai 2", ["rai 2", "rai2"]),
+              ("rai3", "Rai 3", ["rai 3", "rai3"]),
+              ("rete4", "Rete 4", ["rete 4", "rete4"]),
+              ("canale5", "Canale 5", ["canale 5", "canale5"]),
+              ("italia1", "Italia 1", ["italia 1", "italia1"]),
+              ("la7", "La7", ["la7", "la 7"]),
+              ("tv8", "TV8", ["tv8", "tv 8"]),
+              ("nove", "Nove", ["nove", "9 nove"]),
+              ("rai4", "Rai 4", ["rai 4", "rai4"]),
+              ("rai5", "Rai 5", ["rai 5", "rai5"]),
+              ("raimovie", "Rai Movie", ["rai movie", "raimovie"]),
+              ("raipremium", "Rai Premium", ["rai premium", "raipremium"]),
+              ("raistoria", "Rai Storia", ["rai storia", "raistoria"]),
+              ("rainews24", "Rai News 24", ["rai news 24", "rainews24", "rai news24"]),
+              ("20mediaset", "20", ["20 mediaset", "20"]),
+              ("iris", "Iris", ["iris"]),
+              ("cine34", "Cine34", ["cine34", "cine 34"]),
+              ("la5", "La 5", ["la 5", "la5"]),
+              ("italia2", "Italia 2", ["italia 2", "italia2"]),
+              ("mediasetextra", "Mediaset Extra", ["mediaset extra"]),
+              ("topcrime", "Top Crime", ["top crime", "topcrime"]),
+              ("focus", "Focus", ["focus"]),
+              ("cielo", "Cielo", ["cielo"]),
+              ("realtime", "Real Time", ["real time", "realtime"]),
+              ("dmax", "DMAX", ["dmax"]),
+              ("giallo", "Giallo", ["giallo"]),
+              ("foodnetwork", "Food Network", ["food network"]),
+              ("motortrend", "Motor Trend", ["motor trend", "motortrend"]),
+              ("warnertv", "Warner TV", ["warner tv", "warnertv"])
+          ]
+
+          def norm(s):
+              s = unicodedata.normalize("NFKD", s or "")
+              s = "".join(c for c in s if not unicodedata.combining(c))
+              s = re.sub(r"[^a-zA-Z0-9]+", " ", s.lower())
+              return " ".join(s.split())
+
+          def parse_time(s):
+              if not s:
+                  return None
+              for fmt in ("%Y%m%d%H%M%S %z", "%Y%m%d%H%M %z"):
+                  try:
+                      return int(datetime.strptime(s.strip(), fmt).timestamp() * 1000)
+                  except ValueError:
+                      pass
+              return None
+
+          root = ET.parse("/tmp/it.xml").getroot()
+
+          source_channels = {}
+          for ch in root.findall("channel"):
+              cid = ch.attrib.get("id", "")
+              names = [x.text or "" for x in ch.findall("display-name")]
+              icon = ch.find("icon")
+              source_channels[cid] = {
+                  "names": names,
+                  "logo": icon.attrib.get("src") if icon is not None else None
+              }
+
+          selected = {}
+          used = set()
+
+          for out_id, pretty, aliases in WANTED:
+              aliases_n = [norm(x) for x in aliases]
+              best = None
+              best_score = 0
+
+              for cid, meta in source_channels.items():
+                  if cid in used:
+                      continue
+
+                  haystacks = [norm(cid)] + [norm(x) for x in meta["names"]]
+
+                  for alias in aliases_n:
+                      for hay in haystacks:
+                          score = 0
+                          if hay == alias:
+                              score = 100
+                          elif alias in hay or hay in alias:
+                              score = 70
+
+                          if score > best_score:
+                              best_score = score
+                              best = cid
+
+              if best and best_score >= 70:
+                  used.add(best)
+                  selected[best] = {
+                      "id": out_id,
+                      "name": pretty,
+                      "logo": source_channels[best]["logo"]
+                  }
+
+          programs = {meta["id"]: [] for meta in selected.values()}
+
+          for p in root.findall("programme"):
+              source_id = p.attrib.get("channel", "")
+              if source_id not in selected:
+                  continue
+
+              start = parse_time(p.attrib.get("start"))
+              stop = parse_time(p.attrib.get("stop"))
+
+              if not start or not stop:
+                  continue
+
+              out_id = selected[source_id]["id"]
+
+              programs[out_id].append({
+                  "start": start,
+                  "stop": stop,
+                  "title": re.sub(r"\s+", " ", p.findtext("title") or "").strip(),
+                  "description": re.sub(r"\s+", " ", p.findtext("desc") or "").strip(),
+                  "category": re.sub(r"\s+", " ", p.findtext("category") or "").strip()
+              })
+
+          channels = []
+          cleaned = {}
+
+          for meta in selected.values():
+              cid = meta["id"]
+              if programs.get(cid):
+                  channels.append(meta)
+                  cleaned[cid] = sorted(programs[cid], key=lambda x: x["start"])
+
+          out = {
+              "updated_at": datetime.now(timezone.utc).isoformat(),
+              "source": "EPGshare01 IT1",
+              "channels": channels,
+              "programs": cleaned
+          }
+
+          with open("tv.json", "w", encoding="utf-8") as f:
+              json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
+
+          print("Canali trovati:", len(channels))
+          print("Programmi trovati:", sum(len(v) for v in cleaned.values()))
+          PY
+
+      - name: Salva palinsesti aggiornati
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add tv.json
+
+          if git diff --cached --quiet; then
+            echo "Nessuna modifica."
+          else
+            git commit -m "Aggiorna palinsesti TV"
+            git push
+          fi
