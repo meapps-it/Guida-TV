@@ -1,0 +1,8 @@
+{
+  "appId": "com.meapps.guidatv",
+  "appName": "Guida TV",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}

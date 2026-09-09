@@ -3,7 +3,7 @@ const FAVORITES_KEY = "guidatv_favorites_v1";
 const CACHE_KEY = "guidatv_data_v4";
 const IMAGE_CACHE_KEY = "guidatv_images_tvmaze_v2";
 const PX_PER_MIN = 1.7;
-const CHANNEL_COL = 112;
+const CHANNEL_COL = 82;
 
 const state = {
   data: null,
@@ -25,6 +25,7 @@ const modal = $("#detailModal");
 let liveTickTimer = null;
 let autoRefreshTimer = null;
 let thumbTimer = null;
+let currentDetailKey = null;
 
 function refreshHeaderClock(){
   updatedEl.textContent = "Palinsesti italiani";
@@ -322,10 +323,17 @@ function render(){
 
 function openDetail(key){
   const found=findProgramme(key); if(!found) return;
+  currentDetailKey=key;
   const {channel,p}=found;
   $("#detailTitle").textContent=p.title||"Programma";
   $("#detailMeta").textContent=`${channel.name} · ${fmtTime(p.start)} - ${fmtTime(p.stop)}${p.category?` · ${p.category}`:""}`;
   $("#detailDesc").textContent=p.description||"Nessuna descrizione disponibile.";
+  const savedReminders=JSON.parse(localStorage.getItem("guidatv_reminders_v1")||"{}");
+  const savedReminder=savedReminders[key];
+  document.querySelectorAll(".reminder-btn").forEach(b=>b.classList.toggle("active",!!savedReminder&&Number(b.dataset.remind)===Number(savedReminder.minutesBefore)));
+  $("#reminderNote").textContent=savedReminder
+    ? `Promemoria salvato per le ${fmtTime(savedReminder.at)}.`
+    : "Nell'APK Android la campanella userà le notifiche locali.";
   const hero=$("#detailHero");
   hero.querySelectorAll("img").forEach(x=>x.remove());
   const cached=p.image||getCachedImage(p.title||"");
@@ -342,9 +350,59 @@ function openDetail(key){
   modal.setAttribute("aria-hidden","false");
 }
 
+
+async function setProgrammeReminder(minutesBefore){
+  if(!currentDetailKey) return;
+  const found=findProgramme(currentDetailKey);
+  if(!found) return;
+  const {channel,p}=found;
+  const when=new Date(p.start-(Number(minutesBefore)||0)*60000);
+  const note=$("#reminderNote");
+  if(when.getTime()<=Date.now()){
+    note.textContent="Questo orario è già passato.";
+    return;
+  }
+
+  // Quando l'app è dentro Capacitor, usa la notifica locale nativa Android.
+  const LocalNotifications=window.Capacitor?.Plugins?.LocalNotifications;
+  if(LocalNotifications){
+    try{
+      const perm=await LocalNotifications.requestPermissions();
+      if(perm.display!=="granted"){
+        note.textContent="Autorizzazione notifiche non concessa.";
+        return;
+      }
+      const id=Math.abs([...currentDetailKey].reduce((a,c)=>((a<<5)-a)+c.charCodeAt(0),0))%2147483000;
+      await LocalNotifications.schedule({notifications:[{
+        id,
+        title: minutesBefore ? `Tra ${minutesBefore} minuti` : "Sta iniziando",
+        body:`${p.title||"Programma"} su ${channel.name}`,
+        schedule:{at:when},
+        extra:{programmeKey:currentDetailKey}
+      }]});
+      note.textContent=`Promemoria impostato per le ${fmtTime(when.getTime())}.`;
+      document.querySelectorAll(".reminder-btn").forEach(b=>b.classList.toggle("active",Number(b.dataset.remind)===Number(minutesBefore)));
+      return;
+    }catch(e){
+      note.textContent="Non riesco a programmare la notifica.";
+      return;
+    }
+  }
+
+  // Sul sito/PWA salviamo la scelta. La notifica affidabile a app chiusa arriverà con l'APK.
+  const reminders=JSON.parse(localStorage.getItem("guidatv_reminders_v1")||"{}");
+  reminders[currentDetailKey]={minutesBefore:Number(minutesBefore),at:when.getTime(),title:p.title||"Programma",channel:channel.name};
+  localStorage.setItem("guidatv_reminders_v1",JSON.stringify(reminders));
+  note.textContent=`Promemoria salvato per le ${fmtTime(when.getTime())}. Nell'APK diventerà una notifica Android.`;
+  document.querySelectorAll(".reminder-btn").forEach(b=>b.classList.toggle("active",Number(b.dataset.remind)===Number(minutesBefore)));
+}
+
+document.querySelectorAll(".reminder-btn").forEach(btn=>btn.addEventListener("click",()=>setProgrammeReminder(Number(btn.dataset.remind))));
+
 function closeDetail(){
   modal.classList.remove("open");
   modal.setAttribute("aria-hidden","true");
+  currentDetailKey=null;
 }
 
 function setView(view){
@@ -389,7 +447,7 @@ $("#refresh").addEventListener("click",()=>loadData(true));
 $("#detailClose").addEventListener("click",closeDetail);
 modal.addEventListener("click",e=>{ if(e.target===modal) closeDetail(); });
 window.addEventListener("scroll",scheduleThumbHydration,{passive:true});
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=4").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=5").catch(()=>{}));
 startLiveTimers();
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState === "visible") loadData(true); });
 loadData(true);

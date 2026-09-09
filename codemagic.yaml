@@ -1,0 +1,35 @@
+workflows:
+  android-debug:
+    name: Guida TV - APK Android
+    max_build_duration: 60
+    environment:
+      node: 22
+      java: 21
+    scripts:
+      - name: Installa dipendenze
+        script: |
+          npm install
+
+      - name: Prepara file web
+        script: |
+          rm -rf www
+          mkdir -p www
+          cp index.html app.js manifest.webmanifest sw.js tv.json www/
+          cp icon-192.png icon-512.png icon-maskable-512.png www/
+
+      - name: Prepara progetto Android
+        script: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+          npx cap sync android
+
+      - name: Compila APK
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+    artifacts:
+      - android/app/build/outputs/apk/debug/*.apk
+      - android/app/build/outputs/**/*.apk

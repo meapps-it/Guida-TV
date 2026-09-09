@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f3e8f9">
+  <meta name="theme-color" content="#5b4bff">
   <meta name="description" content="Guida TV italiana con programmi in onda, prima serata e timeline.">
   <title>Guida TV</title>
   <link rel="manifest" href="./manifest.webmanifest">
@@ -12,14 +12,14 @@
   <style>
     :root{
       font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-      --bg:#faf7fc;
+      --bg:#f4f7ff;
       --surface:#ffffff;
-      --surface-soft:#fff9ff;
-      --ink:#1a1720;
-      --muted:#7d7385;
-      --line:#eadff0;
-      --header:#f3e8f9;
-      --header-2:#f8f2fb;
+      --surface-soft:#fff8fd;
+      --ink:#171625;
+      --muted:#6f6b80;
+      --line:#dedff2;
+      --header:#6557ff;
+      --header-2:#8b5cf6;
       --drawer:#2c2533;
       --accent:#6c63ff;
       --accent-2:#38c6e8;
@@ -30,17 +30,17 @@
       --soft-shadow:0 6px 16px rgba(64,40,76,.07);
     }
     *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;background:linear-gradient(180deg,#fcf8ff 0%,#f8f6fb 100%);color:var(--ink)}
+    html,body{margin:0;min-height:100%;background:linear-gradient(160deg,#eef7ff 0%,#fff2f8 48%,#f5f1ff 100%);color:var(--ink)}
     body{overscroll-behavior-y:none}
     button,input{font:inherit}
     button{cursor:pointer}
     .app{min-height:100vh;padding-bottom:calc(32px + env(safe-area-inset-bottom))}
-    .topbar{position:sticky;top:0;z-index:40;height:calc(78px + env(safe-area-inset-top));padding:calc(10px + env(safe-area-inset-top)) 14px 10px;display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,rgba(243,232,249,.97),rgba(248,242,251,.97));backdrop-filter:blur(14px);border-bottom:1px solid #e7dced;box-shadow:0 8px 24px rgba(127,92,153,.07)}
-    .icon-btn{border:0;background:transparent;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:#2a2430;font-size:26px}
+    .topbar{position:sticky;top:0;z-index:40;height:calc(78px + env(safe-area-inset-top));padding:calc(10px + env(safe-area-inset-top)) 14px 10px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(91,75,255,.97),rgba(139,92,246,.97) 55%,rgba(255,105,180,.94));backdrop-filter:blur(14px);border-bottom:1px solid #e7dced;box-shadow:0 8px 24px rgba(127,92,153,.07)}
+    .icon-btn{border:0;background:rgba(255,255,255,.14);width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:#fff;font-size:26px}
     .icon-btn:active{background:rgba(0,0,0,.06)}
     .brand{min-width:0;flex:1}
-    .brand h1{margin:0;font-size:25px;line-height:1.05;font-weight:900;letter-spacing:-.4px}
-    .brand .sub{margin-top:5px;color:#84788b;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .brand h1{color:#fff;margin:0;font-size:25px;line-height:1.05;font-weight:900;letter-spacing:-.4px}
+    .brand .sub{margin-top:5px;color:rgba(255,255,255,.82);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .main{max-width:1040px;margin:0 auto;padding:14px}
     .hero-search{display:flex;gap:8px;margin-bottom:10px}
     .search{width:100%;border:1px solid #e1d7e8;background:#fff;color:#231f28;border-radius:18px;padding:13px 15px;outline:none;box-shadow:0 4px 14px rgba(42,31,45,.04)}
@@ -48,11 +48,11 @@
     .chips{display:flex;gap:9px;overflow:auto;scrollbar-width:none;padding:2px 0 12px}
     .chips::-webkit-scrollbar{display:none}
     .chip{border:1px solid #ddd3e5;background:#fff;color:#544c5b;border-radius:999px;padding:10px 15px;white-space:nowrap;box-shadow:0 2px 10px rgba(70,50,90,.03)}
-    .chip.active{background:linear-gradient(135deg,#2d2933,#464050);color:#fff;border-color:#2d2933;font-weight:800;box-shadow:0 10px 18px rgba(34,31,40,.18)}
+    .chip.active{background:linear-gradient(135deg,#5b4bff,#8b5cf6);color:#fff;border-color:#2d2933;font-weight:800;box-shadow:0 10px 18px rgba(34,31,40,.18)}
     .status{font-size:12px;color:var(--muted);padding:4px 2px 12px}
     .cards{display:grid;gap:13px}
-    .channel-card{background:linear-gradient(180deg,#fff 0%,#fffcff 100%);border:1px solid #ece2f0;border-radius:22px;overflow:hidden;box-shadow:var(--shadow)}
-    .channel-head{display:flex;align-items:center;gap:11px;padding:12px 13px;border-bottom:1px solid #f0e8f3;background:linear-gradient(180deg,#fff 0%,#fdf9ff 100%)}
+    .channel-card{background:linear-gradient(145deg,#fff 0%,#fbf8ff 58%,#f1fbff 100%);border:1px solid #ece2f0;border-radius:22px;overflow:hidden;box-shadow:var(--shadow)}
+    .channel-head{display:flex;align-items:center;gap:11px;padding:12px 13px;border-bottom:1px solid #e7e4f6;background:linear-gradient(90deg,#f4f0ff 0%,#eefaff 55%,#fff3f8 100%)}
     .channel-logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#f2ebf7,#f8f3fb);display:grid;place-items:center;overflow:hidden;flex:0 0 auto;font-weight:900;font-size:11px;color:#443c4b;border:1px solid #ece2f0}
     .channel-logo img{width:100%;height:100%;object-fit:contain;background:#fff}
     .channel-name{font-size:18px;font-weight:900;flex:1}
@@ -96,20 +96,20 @@
     .time-head{position:sticky;top:0;z-index:12;height:38px;background:#faf6fc;border-bottom:1px solid #e3dbe8}
     .time-label{position:absolute;top:0;height:38px;border-left:1px solid #e7dfe9;padding:9px 0 0 8px;font-size:12px;font-weight:800;color:#635a6a}
     .tl-row{position:relative;height:56px;border-bottom:1px solid #efe8f1}
-    .tl-channel{position:sticky;left:0;z-index:10;width:112px;height:56px;background:#fff;border-right:1px solid #e8e0eb;display:flex;align-items:center;padding:6px 8px}
+    .tl-channel{position:sticky;left:0;z-index:10;width:82px;height:56px;background:#fff;border-right:1px solid #e8e0eb;display:flex;align-items:center;padding:5px 6px}
     .tl-channel-box{display:flex;align-items:center;gap:8px;min-width:0;width:100%}
-    .tl-channel-badge{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#f1e9f7,#fbf6fd);display:grid;place-items:center;overflow:hidden;flex:0 0 auto;border:1px solid #ece2f0}
+    .tl-channel-badge{width:46px;height:40px;border-radius:10px;background:linear-gradient(135deg,#f1e9f7,#fbf6fd);display:grid;place-items:center;overflow:hidden;flex:0 0 auto;border:1px solid #ece2f0}
     .tl-channel-badge img{width:100%;height:100%;object-fit:contain;background:#fff}
     .tl-channel-badge span{font-size:10px;font-weight:900;color:#473f4d}
-    .tl-channel-name{font-size:11px;font-weight:900;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .tl-channel-name{font-size:9px;font-weight:900;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:27px}
     .tl-programme{position:absolute;top:6px;height:44px;border-radius:12px;padding:5px 8px;overflow:hidden;border:1px solid rgba(0,0,0,.05);font-size:11px;line-height:1.15;box-shadow:0 4px 10px rgba(60,42,74,.06)}
     .tl-programme strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .tl-programme small{display:block;margin-top:4px;color:#615867;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .tone-a{background:#f1e8fb}
-    .tone-b{background:#d8efff}
-    .tone-c{background:#ffdce7}
-    .tone-d{background:#fff0b8}
-    .tone-e{background:#ddf6e7}
+    .tone-a{background:#e8ddff}
+    .tone-b{background:#ccefff}
+    .tone-c{background:#ffd1e1}
+    .tone-d{background:#ffe99a}
+    .tone-e{background:#cef4dd}
     .now-line{position:absolute;top:38px;bottom:0;width:2px;background:#2cc6ea;z-index:11;box-shadow:0 0 0 1px rgba(44,198,234,.12)}
     .now-line:before{content:"";position:absolute;top:-5px;left:-4px;width:10px;height:10px;background:#2cc6ea;border-radius:50%}
 
@@ -126,17 +126,23 @@
     .drawer-icon{width:26px;text-align:center;font-size:20px;color:#d7c8ea}
     .drawer-sep{height:1px;background:rgba(255,255,255,.08);margin:8px 18px}
 
-    .modal{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.58);display:none;align-items:flex-end}
+    .modal{position:fixed;inset:0;z-index:90;background:#fff;display:none;align-items:stretch}
     .modal.open{display:flex}
-    .sheet{width:100%;max-height:86vh;overflow:auto;background:#fff;border-radius:24px 24px 0 0;padding:0 0 calc(20px + env(safe-area-inset-bottom));box-shadow:0 -12px 50px rgba(0,0,0,.22)}
-    .sheet-hero{height:210px;background:linear-gradient(135deg,#2a2430,#6a6276);position:relative;overflow:hidden}
+    .sheet{width:100%;height:100dvh;max-height:none;overflow:auto;background:linear-gradient(180deg,#fff 0%,#f7f7ff 100%);border-radius:0;padding:0 0 calc(28px + env(safe-area-inset-bottom));box-shadow:none}
+    .sheet-hero{height:min(46vh,390px);background:linear-gradient(135deg,#2a2430,#6a6276);position:relative;overflow:hidden}
     .sheet-hero img{width:100%;height:100%;object-fit:cover}
     .sheet-hero:after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 45%,rgba(0,0,0,.62))}
     .sheet-close{position:absolute;right:14px;top:14px;z-index:2;border:0;width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:22px}
-    .sheet-body{padding:17px}
-    .sheet-body h2{margin:0 0 6px;font-size:23px}
+    .sheet-body{padding:20px 18px 32px;max-width:760px;margin:0 auto}
+    .sheet-body h2{margin:0 0 7px;font-size:28px;line-height:1.08}
     .sheet-meta{color:#786f7b;font-size:13px;margin-bottom:12px}
-    .sheet-body p{color:#57515a;line-height:1.45;font-size:14px}
+    .sheet-body p{color:#4d4955;line-height:1.55;font-size:16px}
+    .reminder-box{margin:18px 0 4px;padding:15px;border-radius:18px;background:linear-gradient(135deg,#eeeaff,#e9faff 60%,#fff0f6);border:1px solid #ddd8ff}
+    .reminder-title{font-weight:900;font-size:16px;margin-bottom:10px}
+    .reminder-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .reminder-btn{border:0;border-radius:999px;padding:10px 13px;background:#fff;color:#4036a8;font-weight:800;box-shadow:0 4px 12px rgba(70,55,170,.12)}
+    .reminder-btn.active{background:linear-gradient(135deg,#5b4bff,#8b5cf6);color:#fff}
+    .reminder-note{margin-top:9px;font-size:11px;color:#716b82}
     .source-credit{font-size:10px;color:#918895;padding:14px 2px 0;text-align:center}
     .source-credit a{color:inherit}
 
@@ -196,11 +202,22 @@
       <div class="sheet-body">
         <h2 id="detailTitle"></h2>
         <div class="sheet-meta" id="detailMeta"></div>
+        <div class="reminder-box">
+          <div class="reminder-title">🔔 Ricordami questo programma</div>
+          <div class="reminder-actions" id="reminderActions">
+            <button class="reminder-btn" data-remind="0">All'inizio</button>
+            <button class="reminder-btn" data-remind="5">5 min prima</button>
+            <button class="reminder-btn" data-remind="10">10 min prima</button>
+            <button class="reminder-btn" data-remind="15">15 min prima</button>
+            <button class="reminder-btn" data-remind="30">30 min prima</button>
+          </div>
+          <div class="reminder-note" id="reminderNote">Nell'APK Android la campanella userà le notifiche locali.</div>
+        </div>
         <p id="detailDesc"></p>
       </div>
     </div>
   </div>
 
-  <script src="./app.js?v=4"></script>
+  <script src="./app.js?v=5"></script>
 </body>
 </html>

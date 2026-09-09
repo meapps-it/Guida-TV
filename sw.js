@@ -1,5 +1,5 @@
-const CACHE="guidatv-shell-v4";
-const SHELL=["./","./index.html","./app.js?v=4","./manifest.webmanifest","./icon-192.png","./icon-512.png","./icon-maskable-512.png"];
+const CACHE="guidatv-shell-v5";
+const SHELL=["./","./index.html","./app.js?v=5","./manifest.webmanifest","./icon-192.png","./icon-512.png","./icon-maskable-512.png"];
 
 self.addEventListener("install",e=>{
   e.waitUntil(
