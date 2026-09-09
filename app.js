@@ -3,7 +3,7 @@ const FAVORITES_KEY = "guidatv_favorites_v1";
 const CACHE_KEY = "guidatv_data_v4";
 const IMAGE_CACHE_KEY = "guidatv_images_tvmaze_v2";
 const PX_PER_MIN = 1.7;
-const CHANNEL_COL = 82;
+const CHANNEL_COL = 54;
 
 const state = {
   data: null,
@@ -447,7 +447,7 @@ $("#refresh").addEventListener("click",()=>loadData(true));
 $("#detailClose").addEventListener("click",closeDetail);
 modal.addEventListener("click",e=>{ if(e.target===modal) closeDetail(); });
 window.addEventListener("scroll",scheduleThumbHydration,{passive:true});
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=5").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=7").catch(()=>{}));
 startLiveTimers();
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState === "visible") loadData(true); });
 loadData(true);
